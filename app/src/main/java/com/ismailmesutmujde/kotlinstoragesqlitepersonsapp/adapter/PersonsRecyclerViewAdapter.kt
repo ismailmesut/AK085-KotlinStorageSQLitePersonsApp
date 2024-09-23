@@ -13,9 +13,14 @@ import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.ismailmesutmujde.kotlinstoragesqlitepersonsapp.R
+import com.ismailmesutmujde.kotlinstoragesqlitepersonsapp.dao.PersonsDao
+import com.ismailmesutmujde.kotlinstoragesqlitepersonsapp.database.DatabaseHelper
 import com.ismailmesutmujde.kotlinstoragesqlitepersonsapp.model.Persons
 
-class PersonsRecyclerViewAdapter(private val mContext : Context, private val personsList : List<Persons>) : RecyclerView.Adapter<PersonsRecyclerViewAdapter.CardDesignHolder>() {
+class PersonsRecyclerViewAdapter(private val mContext : Context,
+                                 private var personsList : List<Persons>,
+                                 private val dbh : DatabaseHelper)
+    : RecyclerView.Adapter<PersonsRecyclerViewAdapter.CardDesignHolder>() {
 
     inner class CardDesignHolder(view : View) : RecyclerView.ViewHolder(view) {
         var textViewPersonInfo : TextView
@@ -49,7 +54,9 @@ class PersonsRecyclerViewAdapter(private val mContext : Context, private val per
                     R.id.action_delete -> {
                         Snackbar.make(holder.imageViewDot,"Delete ${person.person_name}?", Snackbar.LENGTH_SHORT)
                             .setAction("YES") {
-
+                                PersonsDao().deletePerson(dbh, person.person_id)
+                                personsList = PersonsDao().allPersons(dbh)
+                                notifyDataSetChanged()
                             }.show()
                         true
                     }
@@ -78,6 +85,10 @@ class PersonsRecyclerViewAdapter(private val mContext : Context, private val per
         alertDialog.setPositiveButton("Update") { dialogInterface, i ->
             val person_name = editTextPersonName.text.toString().trim()
             val person_phone = editTextPersonPhone.text.toString().trim()
+
+            PersonsDao().updatePerson(dbh, person.person_id, person_name, person_phone)
+            personsList = PersonsDao().allPersons(dbh)
+            notifyDataSetChanged()
 
             Toast.makeText(mContext, "${person_name} - ${person_phone}", Toast.LENGTH_SHORT).show()
 
